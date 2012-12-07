@@ -24,6 +24,11 @@ class modResourceFieldTag extends modFieldTag {
             } else {
                 $tag = explode('.', $this->get('name'));
                 $tagLength = count($tag);
+                // for processing tags in resource_id place ([[#[[+id]].pagetitle]])
+                $tags = array();
+                if ($collected= $this->modx->parser->collectElementTags($tag[0], $tags)) {
+                    $tag[0] = $this->modx->parser->processTag($tags[0], $this->modx->parser->isProcessingUncacheable());
+                }
                 if (is_numeric($tag[0])) {
                     $resource = $this->modx->getObject('modResource', $tag[0]);
                     if ($resource)

@@ -44,6 +44,7 @@ switch ($modx->event->name) {
         $tags= array ();
         if ($collected= $modx->parser->collectElementTags($content, $tags, '[[', ']]', array('#')))
         {
+            $tagMap= array ();
             foreach ($tags as $tag) {
                 $token = substr($tag[1], 0, 1);
                 if ($token == '#') {
@@ -60,9 +61,14 @@ switch ($modx->event->name) {
                     $element->set('name', $tagName);
                     $element->setTag('');
                     $element->setCacheable(false);
-                    $modx->documentOutput= $element->process($tagPropString);
+                    $tagMap[$tag[0]] = $element->process($tagPropString);
                 }
+               // else {
+               //     $tagMap[$tag[0]] = $modx->parser->processTag($tag, $modx->parser->isProcessingUncacheable());
+               // }
             }
+            $modx->parser->mergeTagOutput($tagMap, $content);
+            $modx->documentOutput = $content;
         }
         break;
 }
