@@ -1,0 +1,9 @@
+Changelog for fastField
+
+fastField 1.0.0-pl
+-------------------
+Initial Version
+
+fastField 1.1.0-pl
+-------------------
+- Add processing output filters as default tags do. For example, [[#3.pagetitle:ucase:default=`[[*pagetitle:ucase]]`]]
