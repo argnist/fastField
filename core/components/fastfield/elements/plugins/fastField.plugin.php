@@ -10,17 +10,20 @@
  * [[#1.pagetitle]] resource fields
  * [[#1.tv.myTV]] resource TVs (processed)
  * [[#1.properties.articles.articlesPerPage]] resource properties
+ * [[#POST.name]] value of $_POST['name'] (and other global arrays as with snippet getReqParam)
  *
- * You don't need to install getResourceField for its work.
+ * You don't need to install getResourceField and getReqParam for its work.
  *
  * Examples:
- * 1) [[getResourceField? id=`1` &field=`pagetitle`]] is similarly to
- *    [[#1.pagetitle]]
- * 2) [[getResourceField? id=`1` &field=`myTV` &isTV=`1` &processTV=`1`]] is similarly to
- *    [[#1.tv.myTV]]
+ * 1) [[getResourceField? id=`1` &field=`pagetitle`]] is similarly to [[#1.pagetitle]]
+ * 2) [[getResourceField? id=`1` &field=`myTV` &isTV=`1` &processTV=`1`]] is similarly to [[#1.tv.myTV]]
  * 3) [[#1.properties.articles.articlesPerPage]] or [[#1.property.articles.articlesPerPage]]
- *    or even [[#1.prop.articles.articlesPerPage]]  (isn't supported by getResourceField')
- * Last example makes sense for Articles extra. Namespace "core" is standard.
+ * or even [[#1.prop.articles.articlesPerPage]]  (isn't supported by getResourceField')
+ * This example makes sense for Articles extra. Namespace "core" is standard.
+ * 4) [[!#get.name]] returns value of $_GET['name']. Supported global arrays: $_GET, $_POST, $_REQUEST, $_SERVER, $_FILES,
+ * $_COOKIE, $_SESSION. The type of array after # is case-insensitive. The name of array element is case-sensitive.
+ * You should use uncached tag [[!#get.name]] for cached resources.
+ * CAUTION: use :stripTags output filter to prevent XSS-attacks (eg. [[!#get.name:stripTags]])!
  *
  * It is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -40,35 +43,9 @@
 
 switch ($modx->event->name) {
     case 'OnParseDocument':
-        $content = $modx->documentOutput;
-        $tags= array ();
-        if ($collected= $modx->parser->collectElementTags($content, $tags, '[[', ']]', array('#')))
-        {
-            $tagMap= array ();
-            foreach ($tags as $tag) {
-                $token = substr($tag[1], 0, 1);
-                if ($token == '#') {
-                    include_once $modx->getOption('core_path') . 'components/fastfield/model/fastfield/fastfield.php';
-
-                    $tagParts= xPDO :: escSplit('?', $tag[1], '`', 2);
-                    $tagName= substr(trim($tagParts[0]), 1);
-                    $tagPropString= null;
-                    if (isset ($tagParts[1])) {
-                        $tagPropString= trim($tagParts[1]);
-                    }
-
-                    $element= new modResourceFieldTag($modx);
-                    $element->set('name', $tagName);
-                    $element->setTag('');
-                    $element->setCacheable(false);
-                    $tagMap[$tag[0]] = $element->process($tagPropString);
-                }
-               // else {
-               //     $tagMap[$tag[0]] = $modx->parser->processTag($tag, $modx->parser->isProcessingUncacheable());
-               // }
-            }
-            $modx->parser->mergeTagOutput($tagMap, $content);
-            $modx->documentOutput = $content;
+        if (get_class($modx->services['parser']) == 'modParser') {
+            unset($modx->services['parser']);
+            $modx->getService('parser', 'fastFieldParser', $modx->getOption('core_path') . 'components/fastfield/model/fastfield/');
         }
-        break;
+    break;
 }

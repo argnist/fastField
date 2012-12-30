@@ -12,6 +12,11 @@ class modResourceFieldTag extends modFieldTag {
     }
 
 
+    /* Strip MODX tags from global arrays for versions prior to 2.2.6-pl */
+    protected function stripTags($content) {
+        return str_replace(array('[[', ']]'), '', $content);
+    }
+
     /**
      * Get the raw source content of the field.
      *
@@ -24,11 +29,6 @@ class modResourceFieldTag extends modFieldTag {
             } else {
                 $tag = explode('.', $this->get('name'));
                 $tagLength = count($tag);
-                // for processing tags in resource_id place ([[#[[+id]].pagetitle]])
-                $tags = array();
-                if ($collected= $this->modx->parser->collectElementTags($tag[0], $tags)) {
-                    $tag[0] = $this->modx->parser->processTag($tags[0], $this->modx->parser->isProcessingUncacheable());
-                }
                 if (is_numeric($tag[0])) {
                     $resource = $this->modx->getObject('modResource', $tag[0]);
                     if ($resource)
@@ -39,14 +39,23 @@ class modResourceFieldTag extends modFieldTag {
                             }
                             else {
                                 $this->_content = $resource->get($tag[1]);
+                                if (is_null($this->_content)) {
+                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown field `' . $tag[1] . '`');
+                                }
                             }
                         }
                         else {
-                            if (($tag[1] == 'tv') && ($tagLength == 3)) {
+                            if (($tagLength == 3) && ($tag[1] == 'tv')) {
                                 $this->_content = $resource->getTVValue($tag[2]);
+                                if (is_null($this->_content)) {
+                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown TV `' . $tag[2] . '`');
+                                }
                             }
-                            elseif (in_array($tag[1], array('properties', 'property', 'prop')) && ($tagLength == 4)) {
+                            elseif (($tagLength == 4) && in_array($tag[1], array('properties', 'property', 'prop'))) {
                                 $this->_content = $resource->getProperty($tag[3], $tag[2]);
+                                if (is_null($this->_content)) {
+                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown property `' . $tag[2] . '.' . $tag[3] . '`');
+                                }
                             }
                             else {
                                 $this->_content = '';
@@ -55,8 +64,35 @@ class modResourceFieldTag extends modFieldTag {
                     }
                     else {
                         $this->_content = '';
+                        $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Resource `' . $tag[0] . '` doesn\'t exist');
                     }
 
+                }
+                else {
+                    $type = strtolower($tag[0]);
+                    switch ($type) {
+                        case 'post':
+                            $this->_content = isset($_POST[$tag[1]]) ? $this->stripTags($_POST[$tag[1]]) : '';
+                            break;
+                        case 'get':
+                            $this->_content = isset($_GET[$tag[1]]) ? $this->stripTags($_GET[$tag[1]]) : '';
+                            break;
+                        case 'request':
+                            $this->_content = isset($_REQUEST[$tag[1]]) ? $this->stripTags($_REQUEST[$tag[1]]) : '';
+                            break;
+                        case 'server':
+                            $this->_content = isset($_SERVER[$tag[1]]) ? $this->stripTags($_SERVER[$tag[1]]) : '';
+                            break;
+                        case 'files':
+                            $this->_content = isset($_FILES[$tag[1]]) ? $this->stripTags($_FILES[$tag[1]]) : '';
+                            break;
+                        case 'cookie':
+                            $this->_content = isset($_COOKIE[$tag[1]]) ? $this->stripTags($_COOKIE[$tag[1]]) : '';
+                            break;
+                        case 'session':
+                            $this->_content = isset($_SESSION[$tag[1]]) ? $this->stripTags($_SESSION[$tag[1]]) : '';
+                            break;
+                    }
                 }
             }
         }

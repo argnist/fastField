@@ -7,3 +7,9 @@ Initial Version
 fastField 1.1.0-pl
 -------------------
 - Add processing output filters as default tags do. For example, [[#3.pagetitle:ucase:default=`[[*pagetitle:ucase]]`]]
+
+fastField 1.2.0-pl
+-------------------
+- More complex tag processing: nesting, caching and all features of resource fields;
+- Global arrays support;
+- Error logs for unknown fields and non-existent resources.
