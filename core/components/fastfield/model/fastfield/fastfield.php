@@ -39,7 +39,8 @@ class modResourceFieldTag extends modFieldTag {
                             }
                             else {
                                 $this->_content = $resource->get($tag[1]);
-                                if (is_null($this->_content)) {
+
+                                if(!array_key_exists($tag[1], $resource->_fields)) {
                                     $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown field `' . $tag[1] . '`');
                                 }
                             }
@@ -47,9 +48,6 @@ class modResourceFieldTag extends modFieldTag {
                         else {
                             if (($tagLength == 3) && ($tag[1] == 'tv')) {
                                 $this->_content = $resource->getTVValue($tag[2]);
-                                if (is_null($this->_content)) {
-                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown TV `' . $tag[2] . '`');
-                                }
                             }
                             elseif (($tagLength == 4) && in_array($tag[1], array('properties', 'property', 'prop'))) {
                                 $this->_content = $resource->getProperty($tag[3], $tag[2]);
