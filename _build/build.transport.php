@@ -32,7 +32,7 @@
 /* Set package info be sure to set all of these */
 define('PKG_NAME','fastField');
 define('PKG_NAME_LOWER','fastfield');
-define('PKG_VERSION','1.2.1');
+define('PKG_VERSION','1.3.0');
 define('PKG_RELEASE','pl');
 define('PKG_CATEGORY','fastField');
 
@@ -46,10 +46,10 @@ $hasChunks = false;
 $hasTemplates = false;
 $hasResources = false;
 $hasValidator = false; /* Run a validator before installing anything */
-$hasResolver = false; /* Run a resolver after installing everything */
+$hasResolver = true; /* Run a resolver after installing everything */
 $hasSetupOptions = false; /* HTML/PHP script to interact with user */
 $hasMenu = false; /* Add items to the MODx Top Menu */
-$hasSettings = false; /* Add new MODx System Settings */
+$hasSettings = true; /* Add new MODx System Settings */
 
 /* Note: TVs are connected to their templates in the script resolver
  * (see _build/data/resolvers/install.script.php)
@@ -59,8 +59,8 @@ $hasTemplates = false;
 /* Note: plugin events are connected to their plugins in the script
  * resolver (see _build/data/resolvers/install.script.php)
  */
-$hasPlugins = true;
-$hasPluginEvents = true;
+$hasPlugins = false;
+$hasPluginEvents = false;
 
 $hasPropertySets = false;
 /* Note: property sets are connected to elements in the script

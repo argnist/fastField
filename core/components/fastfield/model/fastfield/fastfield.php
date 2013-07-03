@@ -30,7 +30,17 @@ class modResourceFieldTag extends modFieldTag {
                 $tag = explode('.', $this->get('name'));
                 $tagLength = count($tag);
                 if (is_numeric($tag[0])) {
+                    $fastFieldCache = $this->modx->cacheManager->getCacheProvider('resource');
+                    if ($this->isCacheable()) {
+                        $cachedResource = $fastFieldCache->get('web/resources/fastfield/' . $tag[0]);
+                        if ($cachedResource && isset($cachedResource[$this->get('name')])) {
+                            $this->_content = $cachedResource[$this->get('name')];
+                            return $this->_content;
+                        }
+                    }
+                    
                     $resource = $this->modx->getObject('modResource', $tag[0]);
+
                     if ($resource)
                     {
                         if ($tagLength == 2) {
@@ -59,6 +69,11 @@ class modResourceFieldTag extends modFieldTag {
                                 $this->_content = '';
                             }
                         }
+                        
+                        if ($this->isCacheable()) {
+                            $cachedResource[$this->get('name')] = $this->_content;
+                            $fastFieldCache->set('web/resources/fastfield/' . $tag[0] , $cachedResource);
+                        }    
                     }
                     else {
                         $this->_content = '';
