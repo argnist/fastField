@@ -11,7 +11,8 @@ It is a simple replacement of getResourceField. It supports grabbing:
 [[#1.properties.articles.articlesPerPage]] resource properties
 [[#POST.name]] value of $_POST['name'] (and other global arrays as with snippet getReqParam)
 
-You don't need to install getResourceField and getReqParam for its work.
+You don't need to install getResourceField and getReqParam for its work. Moreover this plugin is faster than usage of
+those snippets because it replace modParser by own parser and new tag becomes native.
 
 Examples:
 1) [[getResourceField? id=`1` &field=`pagetitle`]] is similarly to

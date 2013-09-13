@@ -32,7 +32,7 @@
 /* Set package info be sure to set all of these */
 define('PKG_NAME','fastField');
 define('PKG_NAME_LOWER','fastfield');
-define('PKG_VERSION','1.3.0');
+define('PKG_VERSION','1.3.1');
 define('PKG_RELEASE','pl');
 define('PKG_CATEGORY','fastField');
 
@@ -391,7 +391,7 @@ if ($hasSettings) {
         $attributes= array(
             xPDOTransport::UNIQUE_KEY => 'key',
             xPDOTransport::PRESERVE_KEYS => true,
-            xPDOTransport::UPDATE_OBJECT => false,
+            xPDOTransport::UPDATE_OBJECT => true,
         );
         foreach ($settings as $setting) {
             $vehicle = $builder->createVehicle($setting,$attributes);
