@@ -1,4 +1,5 @@
 <?php
+    require_once MODX_CORE_PATH . '/model/modx/modparser.class.php';
     class fastFieldParser extends modParser {
 
         public function processTag($tag, $processUncacheable = true) {
