@@ -30,6 +30,7 @@ class modResourceFieldTag extends modFieldTag {
                 $tag = explode('.', $this->get('name'));
                 $tagLength = count($tag);
                 if (is_numeric($tag[0])) {
+                    /** @var xPDOCache $fastFieldCache */
                     $fastFieldCache = $this->modx->cacheManager->getCacheProvider('resource');
                     if ($this->isCacheable()) {
                         $cachedResource = $fastFieldCache->get('web/resources/fastfield/' . $tag[0]);
@@ -38,36 +39,52 @@ class modResourceFieldTag extends modFieldTag {
                             return $this->_content;
                         }
                     }
-                    
-                    $resource = $this->modx->getObject('modResource', $tag[0]);
 
-                    if ($resource)
-                    {
-                        if ($tagLength == 2) {
-                            if ($tag[1] == 'content') {
-                                $this->_content = $resource->getContent($options);
+                    $id = intval($tag[0]);
+                    /** @var modResource $resource */
+                    if ($id === $this->modx->resource->id) {
+                        $resource = $this->modx->resource;
+                    } else {
+                        $resource = $this->modx->getObject('modResource', $id);
+                    }
+
+
+                    $result = null;
+                    if ($resource) {
+                        if ($tagLength > 1) {
+                            if ($tag[1] === 'content') {
+                                $result = $resource->getContent($options);
                             }
                             else {
-                                $this->_content = $resource->get($tag[1]);
+                                $result = $resource->get($tag[1]);
+                                for ($i = 2; $i < $tagLength; $i++) {
+                                    if (isset($result[$tag[$i]])) {
+                                        $result = $result[$tag[$i]];
+                                    } else {
+                                        break;
+                                    }
+                                }
 
-                                if(!array_key_exists($tag[1], $resource->_fields)) {
-                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown field `' . $tag[1] . '`');
+                                if (is_null($result)) {
+                                    if (($tagLength == 3) && ($tag[1] === 'tv')) {
+                                        $result = $resource->getTVValue($tag[2]);
+                                    } else {
+                                        $result = $resource->getTVValue($tag[1]);
+                                    }
+                                }
+
+                                if (is_null($result) && ($tagLength == 4) && in_array($tag[1], array('properties', 'property', 'prop'))) {
+                                    $result = $resource->getProperty($tag[3], $tag[2]);
                                 }
                             }
                         }
+
+                        if (is_null($result)) {
+                            $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown tag `' . $this->get('name') . '`');
+                            $this->_content = '';
+                        }
                         else {
-                            if (($tagLength == 3) && ($tag[1] == 'tv')) {
-                                $this->_content = $resource->getTVValue($tag[2]);
-                            }
-                            elseif (($tagLength == 4) && in_array($tag[1], array('properties', 'property', 'prop'))) {
-                                $this->_content = $resource->getProperty($tag[3], $tag[2]);
-                                if (is_null($this->_content)) {
-                                    $this->modx->log(modX::LOG_LEVEL_ERROR, 'fastField: Unknown property `' . $tag[2] . '.' . $tag[3] . '`');
-                                }
-                            }
-                            else {
-                                $this->_content = '';
-                            }
+                            $this->_content = $result;
                         }
                         
                         if ($this->isCacheable()) {
@@ -85,27 +102,32 @@ class modResourceFieldTag extends modFieldTag {
                     $type = strtolower($tag[0]);
                     switch ($type) {
                         case 'post':
-                            $this->_content = isset($_POST[$tag[1]]) ? $this->stripTags($_POST[$tag[1]]) : '';
+                            $gArray = $_POST;
                             break;
                         case 'get':
-                            $this->_content = isset($_GET[$tag[1]]) ? $this->stripTags($_GET[$tag[1]]) : '';
+                            $gArray = $_GET;
                             break;
                         case 'request':
-                            $this->_content = isset($_REQUEST[$tag[1]]) ? $this->stripTags($_REQUEST[$tag[1]]) : '';
+                            $gArray = $_REQUEST;
                             break;
                         case 'server':
-                            $this->_content = isset($_SERVER[$tag[1]]) ? $this->stripTags($_SERVER[$tag[1]]) : '';
+                            $gArray = $_SERVER;
                             break;
                         case 'files':
-                            $this->_content = isset($_FILES[$tag[1]]) ? $this->stripTags($_FILES[$tag[1]]) : '';
+                            $gArray = $_FILES;
                             break;
                         case 'cookie':
-                            $this->_content = isset($_COOKIE[$tag[1]]) ? $this->stripTags($_COOKIE[$tag[1]]) : '';
+                            $gArray = $_COOKIE;
                             break;
                         case 'session':
-                            $this->_content = isset($_SESSION[$tag[1]]) ? $this->stripTags($_SESSION[$tag[1]]) : '';
+                            $gArray = $_SESSION;
+                            break;
+                        default:
+                            $gArray = array();
                             break;
                     }
+                    $gArray = $this->modx->sanitize($gArray, $this->modx->sanitizePatterns);
+                    $this->_content = isset($gArray[$tag[1]]) ? $this->stripTags($gArray[$tag[1]]) : '';
                 }
             }
         }

@@ -5,7 +5,7 @@
 
         public function processTag($tag, $processUncacheable = true) {
             // We need only # placeholders
-            if ($tag[1][0] === '-' || ($tag[1][0] !== '#' && strpos($tag[1], '!#') === false)) {
+            if (($tag[1][0] !== '#') && strpos($tag[1], '!#') === false) {
 			    return parent::processTag($tag, $processUncacheable);
 		    }
             
@@ -60,7 +60,6 @@
             }
             if ($this->modx->getDebug() === true) {
                 $this->modx->log(xPDO::LOG_LEVEL_DEBUG, "Processing {$outerTag} as {$innerTag} using tagname {$tagName}:\n" . print_r($elementOutput, 1) . "\n\n");
-                /* $this->modx->cacheManager->writeFile(MODX_BASE_PATH . 'parser.log', "Processing {$outerTag} as {$innerTag}:\n" . print_r($elementOutput, 1) . "\n\n", 'a'); */
             }
             $this->_processingTag = false;
             return $elementOutput;

@@ -29,13 +29,6 @@
  */
 
 
-/* Set package info be sure to set all of these */
-define('PKG_NAME','fastField');
-define('PKG_NAME_LOWER','fastfield');
-define('PKG_VERSION','1.4.0');
-define('PKG_RELEASE','pl');
-define('PKG_CATEGORY','fastField');
-
 /* Set package options - you can turn these on one-by-one
  * as you create the transport package
  * */
@@ -86,6 +79,8 @@ $mtime = $mtime[1] + $mtime[0];
 $tstart = $mtime;
 set_time_limit(0);
 
+require_once $sources['build'].'build.config.php';
+
 /* define sources */
 $root = dirname(dirname(__FILE__)) . '/';
 $sources= array (
@@ -106,7 +101,6 @@ unset($root);
 /* Instantiate MODx -- if this require fails, check your
  * _build/build.config.php file
  */
-require_once $sources['build'].'build.config.php';
 require_once MODX_CORE_PATH . 'model/modx/modx.class.php';
 $modx= new modX();
 $modx->initialize('mgr');
@@ -421,6 +415,46 @@ $mtime= $mtime[1] + $mtime[0];
 $tend= $mtime;
 $totalTime= ($tend - $tstart);
 $totalTime= sprintf("%2.4f s", $totalTime);
+
+if (defined('PKG_AUTO_INSTALL') && PKG_AUTO_INSTALL) {
+    $signature = $builder->getSignature();
+    $sig = explode('-',$signature);
+    $versionSignature = explode('.',$sig[1]);
+
+    /* @var modTransportPackage $package */
+    if (!$package = $modx->getObject('transport.modTransportPackage', array('signature' => $signature))) {
+        $package = $modx->newObject('transport.modTransportPackage');
+        $package->set('signature', $signature);
+        $package->fromArray(array(
+            'created' => date('Y-m-d h:i:s'),
+            'updated' => null,
+            'state' => 1,
+            'workspace' => 1,
+            'provider' => 0,
+            'source' => $signature.'.transport.zip',
+            'package_name' => $sig[0],
+            'version_major' => $versionSignature[0],
+            'version_minor' => !empty($versionSignature[1]) ? $versionSignature[1] : 0,
+            'version_patch' => !empty($versionSignature[2]) ? $versionSignature[2] : 0,
+        ));
+        if (!empty($sig[2])) {
+            $r = preg_split('/([0-9]+)/',$sig[2],-1,PREG_SPLIT_DELIM_CAPTURE);
+            if (is_array($r) && !empty($r)) {
+                $package->set('release',$r[0]);
+                $package->set('release_index',(isset($r[1]) ? $r[1] : '0'));
+            } else {
+                $package->set('release',$sig[2]);
+            }
+        }
+        $package->save();
+    }
+
+    if ($package->install()) {
+        $modx->runProcessor('system/clearcache');
+    }
+}
+
+
 
 $modx->log(xPDO::LOG_LEVEL_INFO, "Package Built.");
 $modx->log(xPDO::LOG_LEVEL_INFO, "Execution time: {$totalTime}");

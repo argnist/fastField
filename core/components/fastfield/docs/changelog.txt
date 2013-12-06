@@ -5,6 +5,8 @@ fastField 1.4.0-pl
 - More compatibility with original modParser
 - Finds TVs without .tv prefix.
 - Sanitize Global arrays
+- More compatibility with json fields
+- Better error logging
 - Some small fixes
 
 
