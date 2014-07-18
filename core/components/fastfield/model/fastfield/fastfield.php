@@ -27,7 +27,7 @@ class modResourceFieldTag extends modFieldTag {
             if (isset($options['content']) && !empty($options['content'])) {
                 $this->_content = $options['content'];
             } else {
-                $tag = explode('.', $this->get('name'));
+                $tag = explode('.', $this->get('name'), 3);
                 $tagLength = count($tag);
                 if (is_numeric($tag[0])) {
                     /** @var xPDOCache $fastFieldCache */
