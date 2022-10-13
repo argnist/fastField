@@ -1,5 +1,7 @@
 <?php
-    require_once MODX_CORE_PATH . '/model/modx/modparser.class.php';
+
+    use MODX\Revolution\modParser;
+    use xPDO\xPDO;
 
     class fastFieldParser extends modParser {
 
