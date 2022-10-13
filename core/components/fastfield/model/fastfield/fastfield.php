@@ -1,5 +1,9 @@
 <?php
 
+use MODX\Revolution\modFieldTag;
+use MODX\Revolution\modX;
+use MODX\Revolution\modResource;
+
 class modResourceFieldTag extends modFieldTag {
 
     /**
